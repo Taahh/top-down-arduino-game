@@ -445,12 +445,23 @@ void ILI9341_drawBitmap(uint16_t x, uint16_t y, uint16_t width, uint16_t height,
 
     DC_HIGH();
     CS_LOW();
-    ILI9341_sendCommand(0x2C);
+    // ILI9341_sendCommand(0x2C);
+    uint16_t defaultColor = 0x11b4;
     for (int16_t i = 0; i < width * height; i++)
     {
-        uint16_t color = bitmap[i];
-        SPI_write(color >> 8);
-        SPI_write(color & 0xFF);
+        uint16_t color = pgm_read_word(&bitmap[i]);
+
+        // ILI9341_sendData16(color);
+        if (color == 0x0000)
+        {
+            SPI_write(defaultColor >> 8);
+            SPI_write(defaultColor & 0xFF);
+        }
+        else
+        {
+            SPI_write(color >> 8);
+            SPI_write(color & 0xFF);
+        }
     }
 
     CS_HIGH();
