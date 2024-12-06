@@ -25,8 +25,34 @@ public:
     LinkedNode<T> *head;
     LinkedNode<T> *tail;
     void push(T byte);
-    T *pop();
-    T *peek();
+    bool pop()
+    {
+        if (head == nullptr)
+        {
+            return false;
+        }
+        LinkedNode<T> *temp = head;
+        head = head->next;
+        delete temp;
+        nodesSize--;
+        if (head == nullptr)
+        {
+            tail = nullptr;
+        }
+        return true;
+    }
+
+    // Peek method to look at the first element without removing it
+    // Returns true if successful, false if the list is empty
+    bool peek(T &out) const
+    {
+        if (head == nullptr)
+        {
+            return false;
+        }
+        out = head->dataByte;
+        return true;
+    }
     int size();
 
 private:
@@ -48,36 +74,6 @@ void LinkedList<T>::push(T byte)
     this->tail->next = new LinkedNode<T>();
     this->tail->next->dataByte = byte;
     this->tail = this->tail->next;
-}
-
-template <typename T>
-T *LinkedList<T>::pop()
-{
-    if (head == nullptr)
-    {
-        return nullptr;
-    }
-    T value = head->dataByte;
-    this->nodesSize--;
-    if (this->nodesSize == 0)
-    {
-        head = nullptr;
-        tail = nullptr;
-        return &value;
-    }
-    this->head = this->head->next;
-    return &value;
-}
-
-template <typename T>
-T *LinkedList<T>::peek()
-{
-    if (head == nullptr)
-    {
-        return nullptr;
-    }
-    T value = head->dataByte;
-    return &value;
 }
 
 template <typename T>
