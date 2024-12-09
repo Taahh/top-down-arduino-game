@@ -14,21 +14,22 @@ public:
     Character(int x, int y) : Entity(x, y)
     {
         this->entitySprite = getSprite("character");
-        this->movementSpeed = 1.5f;
+        // this->movementSpeed = 1.5f;
         this->previousLocations = new LinkedList<Tuple<int, int>>();
     }
     void tick();
 
     EntityType type();
-    LinkedList<Tuple<int, int>>* previousLocs() { return this->previousLocations; }
+    LinkedList<Tuple<int, int>> *previousLocs() { return this->previousLocations; }
 
 private:
-    LinkedList<Tuple<int, int>>* previousLocations;
+    LinkedList<Tuple<int, int>> *previousLocations;
     uint8_t direction();
     void move();
 };
 
-EntityType Character::type() {
+EntityType Character::type()
+{
     return Player;
 }
 
@@ -71,22 +72,22 @@ void Character::move()
     if (GetBit(dir, 1))
     {
         previousLocations->push(prev);
-        yPos = yPos + movementSpeed < height ? yPos + (1 * movementSpeed) : yPos;
+        yPos = yPos + 1.5f < height ? yPos + 1.5f : yPos;
     }
     if (GetBit(dir, 0))
     {
         previousLocations->push(prev);
-        yPos = yPos - movementSpeed >= 0 ? yPos - (1 * movementSpeed) : yPos;
+        yPos = yPos - 1.5f >= 0 ? yPos - 1.5f : yPos;
     }
     if (GetBit(dir, 3))
     {
         previousLocations->push(prev);
-        xPos = xPos - movementSpeed >= 0 ? xPos - (1 * movementSpeed) : xPos;
+        xPos = xPos - 1.5f >= 0 ? xPos - 1.5f : xPos;
     }
     if (GetBit(dir, 2))
     {
         previousLocations->push(prev);
-        xPos = xPos + movementSpeed < width ? xPos + (1 * movementSpeed) : xPos;
+        xPos = xPos + 1.5f < width ? xPos + 1.5f : xPos;
     }
 }
 

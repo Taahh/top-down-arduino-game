@@ -2,16 +2,22 @@
 #include <stdint.h>
 #include <avr/pgmspace.h>
 #include <string.h>
+#include <stdio.h>
+
 extern "C" char *__brkval;
 extern "C" char __heap_start;
 
-int freeMemory() {
+int freeMemory()
+{
     char stack;
     char *heap;
 
-    if (__brkval == 0) {
+    if (__brkval == 0)
+    {
         heap = &__heap_start;
-    } else {
+    }
+    else
+    {
         heap = __brkval;
     }
 
@@ -25,7 +31,7 @@ void renderTick()
         Entity *entity = dummy->dataByte;
         if (entity->type() == Player)
         {
-            Character* character = static_cast<Character*>(entity);
+            Character *character = static_cast<Character *>(entity);
             if (character->previousLocs()->size() > 0)
             {
                 LinkedNode<Tuple<int, int>> *other = character->previousLocs()->head;
@@ -37,9 +43,11 @@ void renderTick()
                     other = other->next;
                 }
             }
-            // serial_println(character->previousLocs()->size());
         }
         ILI9341_drawBitmap(entity->x(), entity->y(), 16, 16, entity->sprite()->bitmap());
         dummy = dummy->next;
     }
+    char text[32];
+    sprintf(text, "Free: %d", freeMemory());
+    ILI9341_drawString(0, 200, text, 0x00, 2);
 }

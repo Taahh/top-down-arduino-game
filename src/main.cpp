@@ -22,9 +22,9 @@ typedef struct _task
   int (*TickFct)(int);       // Task tick function
 } task;
 
-const unsigned long LCD_PERIOD = 30; // render tick
+const unsigned long LCD_PERIOD = 30;  // render tick
 const unsigned long GAME_PERIOD = 30; // tick
-const unsigned long GCD_PERIOD = 30; // TODO:Set the GCD Period
+const unsigned long GCD_PERIOD = 30;  // TODO:Set the GCD Period
 task tasks[NUM_TASKS];
 
 void TimerISR()
@@ -43,13 +43,13 @@ void TimerISR()
 int LcdTick(int state)
 {
   // behaviorUpdate();
-  
+
   renderTick();
   // ILI9341_drawBitmap(200, 200, 16, 16, enemy_bitmap);
   // ILI9341_drawBitmap(150, 150, 16, 16, enemy_bitmap);
   // ILI9341_drawBitmap(150, 175, 16, 16, enemy_bitmap);
   // ILI9341_drawBitmap(100, 100, 16, 16, enemy_bitmap);
-  // ILI9341_drawBitmap(100, 125, 16, 16, enemy_bitmap);
+  // ILI9341_drawBitmap(100, 125, 64, 32, house1Map);
   // ILI9341_drawBitmap(x, y, 16, 16, bitmap);
 
   // ILI9341_fillRect(x, y, 10, 10, 0xffff);
@@ -70,8 +70,8 @@ int main(void)
   ADC_init();
   SPI_init();
 
-  Sprite* goblinSprite = new Sprite("goblin", goblinMap);
-  Sprite* characterSprite = new Sprite("character", characterMap);
+  Sprite *goblinSprite = new Sprite("goblin", goblinMap);
+  Sprite *characterSprite = new Sprite("character", characterMap);
   registerSprite(goblinSprite);
   registerSprite(characterSprite);
 
@@ -81,6 +81,7 @@ int main(void)
 
   ILI9341_setRotation(3);
   ILI9341_fillScreen(0x11b4);
+
   // _delay_ms(1000);
   // ILI9341_fillRect(20, 20, 280, 200, 0xf800);
   // ILI9341_drawString(20, 20, "Hello there", 0xffff, 2);
@@ -90,6 +91,8 @@ int main(void)
 
   TimerSet(GCD_PERIOD);
   TimerOn();
+  serial_println(sizeof(goblinMap));
+  serial_println(sizeof(characterMap));
 
   tasks[0].period = LCD_PERIOD;
   tasks[0].elapsedTime = LCD_PERIOD;
