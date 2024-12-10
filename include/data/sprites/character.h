@@ -14,7 +14,7 @@ public:
     Character(int x, int y) : Entity(x, y)
     {
         this->entitySprite = getSprite("character");
-        // this->movementSpeed = 1.5f;
+        // this->movementSpeed = 3f;
         this->previousLocations = new LinkedList<Tuple<int, int>>();
     }
     void tick();
@@ -69,25 +69,30 @@ void Character::move()
         return;
     }
     Tuple<int, int> prev = Tuple<int, int>{this->xPos, this->yPos};
+    // allow diagonal by removing else, but for the sake of the different sprite states no.
     if (GetBit(dir, 1))
     {
         previousLocations->push(prev);
-        yPos = yPos + 1.5f < height ? yPos + 1.5f : yPos;
+        yPos = yPos + 3 < height ? yPos + 3 : yPos;
+        this->entitySprite = getSprite("character");
     }
     if (GetBit(dir, 0))
     {
         previousLocations->push(prev);
-        yPos = yPos - 1.5f >= 0 ? yPos - 1.5f : yPos;
+        yPos = yPos - 3 >= 0 ? yPos - 3 : yPos;
+        this->entitySprite = getSprite("charBehind");
     }
     if (GetBit(dir, 3))
     {
         previousLocations->push(prev);
-        xPos = xPos - 1.5f >= 0 ? xPos - 1.5f : xPos;
+        xPos = xPos - 3 >= 0 ? xPos - 3 : xPos;
+        this->entitySprite = getSprite("charLeft");
     }
     if (GetBit(dir, 2))
     {
         previousLocations->push(prev);
-        xPos = xPos + 1.5f < width ? xPos + 1.5f : xPos;
+        xPos = xPos + 3 < width ? xPos + 3 : xPos;
+        this->entitySprite = getSprite("charRight");
     }
 }
 

@@ -38,16 +38,16 @@ void renderTick()
                 while (other != nullptr)
                 {
                     Tuple<int, int> prev = other->dataByte;
-                    ILI9341_fillRect(prev.left, prev.right, 17, 17, 0x11b4);
+                    ILI9341_fillRect(prev.left, prev.right, 33, 33, 0x11b4);
                     character->previousLocs()->pop();
                     other = other->next;
                 }
             }
         }
-        ILI9341_drawBitmap(entity->x(), entity->y(), 16, 16, entity->sprite()->bitmap());
+        ILI9341_drawBitmapScaled(entity->x(), entity->y(), 2, 2, 16, 16, entity->sprite()->bitmap());
         dummy = dummy->next;
     }
-    char text[32];
-    sprintf(text, "Free: %d", freeMemory());
-    ILI9341_drawString(0, 200, text, 0x00, 2);
+    // char text[32];
+    // sprintf(text, "Free: %d", freeMemory());
+    // ILI9341_drawString(0, 200, text, 0x00, 2);
 }

@@ -49,7 +49,11 @@ int LcdTick(int state)
   // ILI9341_drawBitmap(150, 150, 16, 16, enemy_bitmap);
   // ILI9341_drawBitmap(150, 175, 16, 16, enemy_bitmap);
   // ILI9341_drawBitmap(100, 100, 16, 16, enemy_bitmap);
-  // ILI9341_drawBitmap(100, 125, 64, 32, house1Map);
+  ILI9341_drawBitmapScaled(0, 0, 3, 3, 32, 16, house1Map);
+  // for (int i = 0; i < width; i += 16)
+  // {
+  //   ILI9341_drawBitmapScaled(i, height - 16, 2, 2, 16, 16, dirtPath);
+  // }
   // ILI9341_drawBitmap(x, y, 16, 16, bitmap);
 
   // ILI9341_fillRect(x, y, 10, 10, 0xffff);
@@ -72,14 +76,20 @@ int main(void)
 
   Sprite *goblinSprite = new Sprite("goblin", goblinMap);
   Sprite *characterSprite = new Sprite("character", characterMap);
+  Sprite *characterFaceRightSprite = new Sprite("charRight", characterFaceRight);
+  Sprite *characterFaceLeftSprite = new Sprite("charLeft", characterFaceLeft);
+  Sprite *characterFaceBehindSprite = new Sprite("charBehind", characterFaceBehind);
   registerSprite(goblinSprite);
   registerSprite(characterSprite);
+  registerSprite(characterFaceRightSprite);
+  registerSprite(characterFaceLeftSprite);
+  registerSprite(characterFaceBehindSprite);
 
   entitySetup();
 
   ILI9341_init();
 
-  ILI9341_setRotation(3);
+  ILI9341_setRotation(2);
   ILI9341_fillScreen(0x11b4);
 
   // _delay_ms(1000);
