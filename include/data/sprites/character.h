@@ -11,21 +11,20 @@
 class Character : public Entity
 {
 public:
-    Character(int x, int y) : Entity(x, y)
+    Character(int x, int y, uint8_t id) : Entity(x, y, id, "character")
     {
-        this->entitySprite = getSprite("character");
         // this->movementSpeed = 3f;
         this->previousLocations = new LinkedList<Tuple<int, int>>();
     }
     void tick();
 
     EntityType type();
+    void move(int16_t &x, int16_t &y);
     LinkedList<Tuple<int, int>> *previousLocs() { return this->previousLocations; }
 
 private:
     LinkedList<Tuple<int, int>> *previousLocations;
     uint8_t direction();
-    void move();
 };
 
 EntityType Character::type()
@@ -61,9 +60,11 @@ uint8_t Character::direction()
     return bitmask & 0x0F;
 }
 
-void Character::move()
+void Character::move(int16_t &x, int16_t &y)
 {
     uint8_t dir = direction();
+    x = xPos;
+    y = yPos;
     if (dir == 0)
     {
         return;
@@ -73,32 +74,32 @@ void Character::move()
     if (GetBit(dir, 1))
     {
         previousLocations->push(prev);
-        yPos = yPos + 3 < height ? yPos + 3 : yPos;
-        this->entitySprite = getSprite("character");
+        y = y + (objectSprite->height() * objectSprite->scale()) + 3 < height ? y + 3 : y;
+        this->objectSprite = getSprite("character");
     }
     if (GetBit(dir, 0))
     {
         previousLocations->push(prev);
-        yPos = yPos - 3 >= 0 ? yPos - 3 : yPos;
-        this->entitySprite = getSprite("charBehind");
+        y = y - (objectSprite->height() / 4 * objectSprite->scale()) - 3 >= 0 ? y - 3 : y;
+        this->objectSprite = getSprite("charBehind");
     }
     if (GetBit(dir, 3))
     {
         previousLocations->push(prev);
-        xPos = xPos - 3 >= 0 ? xPos - 3 : xPos;
-        this->entitySprite = getSprite("charLeft");
+        x = x - (objectSprite->width() / 4 * objectSprite->scale()) - 3 >= 0 ? x - 3 : x;
+        this->objectSprite = getSprite("charLeft");
     }
     if (GetBit(dir, 2))
     {
         previousLocations->push(prev);
-        xPos = xPos + 3 < width ? xPos + 3 : xPos;
-        this->entitySprite = getSprite("charRight");
+        x = x + (objectSprite->width() * objectSprite->scale()) + 3 < width ? x + 3 : x;
+        this->objectSprite = getSprite("charRight");
     }
 }
 
 void Character::tick()
 {
-    move();
+    // this->move();
 }
 
 #endif

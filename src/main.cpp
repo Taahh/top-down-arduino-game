@@ -7,12 +7,14 @@
 #include <bitmaps.h>
 #include <stdio.h>
 #include <util.h>
-#include <game/events/renderer.h>
-#include <game/events/game.h>
+#include <game/game.h>
+#include <game/tasks/renderer.h>
+#include <game/tasks/game.h>
+#include <game/tasks/hud.h>
 
 using namespace std;
 
-#define NUM_TASKS 2
+#define NUM_TASKS 3
 
 typedef struct _task
 {
@@ -23,9 +25,12 @@ typedef struct _task
 } task;
 
 const unsigned long LCD_PERIOD = 30;  // render tick
-const unsigned long GAME_PERIOD = 30; // tick
+const unsigned long GAME_PERIOD = 30; // game tick
+const unsigned long HUD_PERIOD = 30;  // hud tick
 const unsigned long GCD_PERIOD = 30;  // TODO:Set the GCD Period
 task tasks[NUM_TASKS];
+
+Game *game = new Game();
 
 void TimerISR()
 {
@@ -42,28 +47,19 @@ void TimerISR()
 
 int LcdTick(int state)
 {
-  // behaviorUpdate();
-
-  renderTick();
-  // ILI9341_drawBitmap(200, 200, 16, 16, enemy_bitmap);
-  // ILI9341_drawBitmap(150, 150, 16, 16, enemy_bitmap);
-  // ILI9341_drawBitmap(150, 175, 16, 16, enemy_bitmap);
-  // ILI9341_drawBitmap(100, 100, 16, 16, enemy_bitmap);
-  ILI9341_drawBitmapScaled(0, 0, 3, 3, 32, 16, house1Map);
-  // for (int i = 0; i < width; i += 16)
-  // {
-  //   ILI9341_drawBitmapScaled(i, height - 16, 2, 2, 16, 16, dirtPath);
-  // }
-  // ILI9341_drawBitmap(x, y, 16, 16, bitmap);
-
-  // ILI9341_fillRect(x, y, 10, 10, 0xffff);
-  // ILI9341_drawString(20, 20, "Hello there", 0xffff, 0x0000, 2);
+  renderTick(game);
   return state;
 }
 
 int GameTick(int state)
 {
-  gameTick();
+  gameTick(game);
+  return state;
+}
+
+int HudTick(int state)
+{
+  hudTick(game);
   return state;
 }
 
@@ -73,19 +69,31 @@ int main(void)
   // behaviorInit();
   ADC_init();
   SPI_init();
+  DDRD = 0xF0;
+  Sprite *goblinSprite = new Sprite("goblin", goblinMap, 16, 16, 2);
+  Sprite *goblinHitSprite = new Sprite("goblinHit", goblinHitMap, 16, 16, 2);
+  Sprite *characterSprite = new Sprite("character", characterMap, 16, 16, 2);
+  Sprite *characterFaceRightSprite = new Sprite("charRight", characterFaceRight, 16, 16, 2);
+  Sprite *characterFaceLeftSprite = new Sprite("charLeft", characterFaceLeft, 16, 16, 2);
+  Sprite *characterFaceBehindSprite = new Sprite("charBehind", characterFaceBehind, 16, 16, 2);
+  Sprite *houseSprite = new Sprite("house", house1Map, 32, 16, 3);
+  Sprite *inventorySprite = new Sprite("inventory", inventory, 32, 16, 3);
+  Sprite *swordSprite = new Sprite("sword", sword, 16, 16, 2);
+  Sprite *bowLoadedSprite = new Sprite("bowLoaded", bowLoaded, 16, 16, 2);
 
-  Sprite *goblinSprite = new Sprite("goblin", goblinMap);
-  Sprite *characterSprite = new Sprite("character", characterMap);
-  Sprite *characterFaceRightSprite = new Sprite("charRight", characterFaceRight);
-  Sprite *characterFaceLeftSprite = new Sprite("charLeft", characterFaceLeft);
-  Sprite *characterFaceBehindSprite = new Sprite("charBehind", characterFaceBehind);
+  game->inventory()->items()->push(new Item(swordSprite));
+  game->inventory()->items()->push(new Item(bowLoadedSprite));
+
   registerSprite(goblinSprite);
   registerSprite(characterSprite);
   registerSprite(characterFaceRightSprite);
   registerSprite(characterFaceLeftSprite);
   registerSprite(characterFaceBehindSprite);
+  registerSprite(houseSprite);
+  registerSprite(inventorySprite);
+  registerSprite(swordSprite);
 
-  entitySetup();
+  game->setup();
 
   ILI9341_init();
 
@@ -101,8 +109,6 @@ int main(void)
 
   TimerSet(GCD_PERIOD);
   TimerOn();
-  serial_println(sizeof(goblinMap));
-  serial_println(sizeof(characterMap));
 
   tasks[0].period = LCD_PERIOD;
   tasks[0].elapsedTime = LCD_PERIOD;
@@ -113,6 +119,11 @@ int main(void)
   tasks[1].elapsedTime = GAME_PERIOD;
   tasks[1].state = 0;
   tasks[1].TickFct = &GameTick;
+
+  tasks[2].period = HUD_PERIOD;
+  tasks[2].elapsedTime = HUD_PERIOD;
+  tasks[2].state = 0;
+  tasks[2].TickFct = &HudTick;
   while (1)
   {
     // Main loop (do nothing)

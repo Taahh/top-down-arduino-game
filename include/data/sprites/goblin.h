@@ -7,14 +7,15 @@
 class Goblin : public Entity
 {
 public:
-    Goblin(int x, int y) : Entity(x, y)
+    Goblin(int x, int y, uint8_t id) : Entity(x, y, id, "goblin")
     {
-        this->entitySprite = getSprite("goblin");
+        // this->objectSprite = getSprite("goblin");
     }
     EntityType type();
 };
 
-EntityType Goblin::type() {
+EntityType Goblin::type()
+{
     return Enemy;
 }
 

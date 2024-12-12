@@ -5,6 +5,7 @@
 #include <avr/pgmspace.h>
 #include <avr/interrupt.h>
 #include <util/delay.h>
+#include <data/sprite.h>
 #include "linkedlist.h"
 
 #define SPI_DDR DDRB
@@ -439,66 +440,6 @@ void ILI9341_fillRect(uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint16_t c
     CS_HIGH(); // Deselect the display
 }
 
-// void ILI9341_drawBitmap(uint16_t x, uint16_t y, uint8_t scaleX, uint8_t scaleY, uint16_t width, uint16_t height, uint16_t **bitmap)
-// {
-//     ILI9341_setAddressWindow(x, y, x + (width * scaleX) - 1, y + (height * scaleY) - 1);
-
-//     DC_HIGH();
-//     CS_LOW();
-//     // ILI9341_sendCommand(0x2C);
-//     uint16_t defaultColor = 0x11b4;
-//     for (int16_t i = 0; i < width; i++)
-//     {
-//         for (int16_t si = 0; si < scaleX; si++)
-//         {
-//             for (int16_t j = 0; j < height; j++)
-//             {
-//                 uint16_t color = pgm_read_word(&bitmap[i][j]);
-
-//                 for (int16_t sj = 0; sj < scaleY; sj++)
-//                 {
-//                     //     // ILI9341_sendData16(color);
-//                     if (color == 0x0000)
-//                     {
-//                         SPI_write(defaultColor >> 8);
-//                         SPI_write(defaultColor & 0xFF);
-//                     }
-//                     else
-//                     {
-//                         SPI_write(color >> 8);
-//                         SPI_write(color & 0xFF);
-//                     }
-//                 }
-//             }
-//         }
-//     }
-//     // for (int16_t i = 0; i < width * height; i++)
-//     // {
-//     //     uint16_t color = pgm_read_word(&bitmap[i]);
-//     //     // ILI9341_sendData16(color);
-//     //     for (int16_t s = 0; s < scale; s++)
-//     //     {
-//     //         if (color == 0x0000)
-//     //         {
-//     //             SPI_write(defaultColor >> 8);
-//     //             SPI_write(defaultColor & 0xFF);
-//     //         }
-//     //         else
-//     //         {
-//     //             SPI_write(color >> 8);
-//     //             SPI_write(color & 0xFF);
-//     //         }
-//     //     }
-//     // }
-
-//     CS_HIGH();
-// }
-
-// void ILI9341_drawBitmap(uint16_t x, uint16_t y, uint16_t width, uint16_t height, uint16_t **bitmap)
-// {
-//     ILI9341_drawBitmap(x, y, 1, 1, width, height, bitmap);
-// }
-
 void ILI9341_drawBitmap(uint16_t x, uint16_t y, uint16_t width, uint16_t height, const uint16_t *bitmap)
 {
     ILI9341_setAddressWindow(x, y, x + width - 1, y + height - 1);
@@ -527,9 +468,14 @@ void ILI9341_drawBitmap(uint16_t x, uint16_t y, uint16_t width, uint16_t height,
     CS_HIGH();
 }
 
-void ILI9341_drawBitmapScaled(uint16_t x, uint16_t y, uint16_t scaleX, uint16_t scaleY, uint16_t width, uint16_t height, const uint16_t *bitmap)
+void ILI9341_drawBitmap(uint16_t x, uint16_t y, Sprite *sprite)
 {
-    ILI9341_setAddressWindow(x, y, x + width * scaleX - 1, y + height*scaleY - 1);
+    ILI9341_drawBitmap(x, y, sprite->width(), sprite->height(), sprite->bitmap());
+}
+
+void ILI9341_drawBitmapScaled(uint16_t x, uint16_t y, uint16_t scale, uint16_t width, uint16_t height, const uint16_t *bitmap)
+{
+    ILI9341_setAddressWindow(x, y, x + width * scale - 1, y + height * scale - 1);
 
     DC_HIGH();
     CS_LOW();
@@ -537,13 +483,13 @@ void ILI9341_drawBitmapScaled(uint16_t x, uint16_t y, uint16_t scaleX, uint16_t 
 
     for (int16_t j = 0; j < height; j++)
     {
-        for (int16_t sj = 0; sj < scaleY; sj++)
+        for (int16_t sj = 0; sj < scale; sj++)
         {
             for (int16_t i = 0; i < width; i++)
             {
                 uint16_t index = j * width + i;
                 uint16_t color = pgm_read_word(&bitmap[index]);
-                for (int16_t si = 0; si < scaleX; si++)
+                for (int16_t si = 0; si < scale; si++)
                 {
 
                     // Use defaultColor if the bitmap color is 0x0000
@@ -563,6 +509,10 @@ void ILI9341_drawBitmapScaled(uint16_t x, uint16_t y, uint16_t scaleX, uint16_t 
     }
 
     CS_HIGH();
+}
+void ILI9341_drawBitmapScaled(uint16_t x, uint16_t y, Sprite *sprite)
+{
+    ILI9341_drawBitmapScaled(x, y, sprite->scale(), sprite->width(), sprite->height(), sprite->bitmap());
 }
 
 void ILI9341_drawChar(uint16_t x, uint16_t y, char c, uint16_t color, uint16_t bg, bool transparent, uint8_t size)
