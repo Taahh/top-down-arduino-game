@@ -74,7 +74,7 @@ void Character::move(int16_t &x, int16_t &y)
     if (GetBit(dir, 1))
     {
         previousLocations->push(prev);
-        y = y + (objectSprite->height() * objectSprite->scale()) + 3 < height ? y + 3 : y;
+        y = y + (objectSprite->height() * objectSprite->scale()) + 3 < (height - (height / 3)) ? y + 3 : y;
         this->objectSprite = getSprite("character");
     }
     if (GetBit(dir, 0))

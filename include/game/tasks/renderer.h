@@ -54,6 +54,8 @@ void renderTick(Game *game)
             GameObjectImpl *impl = static_cast<GameObjectImpl *>(object);
             ILI9341_drawBitmapScaled(impl->x(), impl->y(), impl->sprite());
         }
+
+        ILI9341_fillRect(0, height - (height / 3), width, 3, 0x00);
         dummy = dummy->next;
     }
 }

@@ -11,10 +11,12 @@
 #include <game/tasks/renderer.h>
 #include <game/tasks/game.h>
 #include <game/tasks/hud.h>
+#include <game/manager/items/sword.h>
+#include <game/manager/items/bow.h>
 
 using namespace std;
 
-#define NUM_TASKS 3
+#define NUM_TASKS 4
 
 typedef struct _task
 {
@@ -24,10 +26,11 @@ typedef struct _task
   int (*TickFct)(int);       // Task tick function
 } task;
 
-const unsigned long LCD_PERIOD = 30;  // render tick
-const unsigned long GAME_PERIOD = 30; // game tick
-const unsigned long HUD_PERIOD = 30;  // hud tick
-const unsigned long GCD_PERIOD = 30;  // TODO:Set the GCD Period
+const unsigned long LCD_PERIOD = 30;   // render tick
+const unsigned long GAME_PERIOD = 30;  // game tick
+const unsigned long HUD_PERIOD = 30;   // hud tick
+const unsigned long INPUT_PERIOD = 30; // hud tick
+const unsigned long GCD_PERIOD = 30;   // TODO:Set the GCD Period
 task tasks[NUM_TASKS];
 
 Game *game = new Game();
@@ -63,12 +66,71 @@ int HudTick(int state)
   return state;
 }
 
+enum InputStates
+{
+  InputInit,
+  ItemSwitchPress,
+  ItemSwitchRelease,
+  AttackPress,
+  AttackRelease
+};
+
+int InputTick(int state)
+{
+  bool itemSwitch = GetBit(PINC, 5);
+  bool attack = GetBit(PINC, 4);
+  switch (state)
+  {
+  case InputInit:
+    if (itemSwitch)
+    {
+      state = ItemSwitchPress;
+    }
+    else if (attack)
+    {
+      state = AttackPress;
+    }
+    else
+    {
+      state = InputInit;
+    }
+    break;
+  case ItemSwitchPress:
+    state = itemSwitch ? ItemSwitchPress : ItemSwitchRelease;
+    break;
+  case ItemSwitchRelease:
+    state = InputInit;
+    break;
+  case AttackPress:
+    state = attack ? AttackPress : AttackRelease;
+    break;
+  case AttackRelease:
+    state = InputInit;
+    break;
+  }
+
+  switch (state)
+  {
+  case ItemSwitchRelease:
+    game->inventory()->selectNext();
+    break;
+  case AttackRelease:
+    Item* item = game->inventory()->items()->at(game->inventory()->selected());
+    if (item != nullptr) {
+      item->use();
+    }
+    break;
+  }
+  return state;
+}
+
 int main(void)
 {
   serial_init(9600);
   // behaviorInit();
   ADC_init();
   SPI_init();
+  DDRC = 0x00;
   DDRD = 0xF0;
   Sprite *goblinSprite = new Sprite("goblin", goblinMap, 16, 16, 2);
   Sprite *goblinHitSprite = new Sprite("goblinHit", goblinHitMap, 16, 16, 2);
@@ -81,8 +143,8 @@ int main(void)
   Sprite *swordSprite = new Sprite("sword", sword, 16, 16, 2);
   Sprite *bowLoadedSprite = new Sprite("bowLoaded", bowLoaded, 16, 16, 2);
 
-  game->inventory()->items()->push(new Item(swordSprite));
-  game->inventory()->items()->push(new Item(bowLoadedSprite));
+  game->inventory()->items()->push(new Sword(swordSprite));
+  game->inventory()->items()->push(new Bow(bowLoadedSprite));
 
   registerSprite(goblinSprite);
   registerSprite(characterSprite);
@@ -92,6 +154,7 @@ int main(void)
   registerSprite(houseSprite);
   registerSprite(inventorySprite);
   registerSprite(swordSprite);
+  registerSprite(bowLoadedSprite);
 
   game->setup();
 
@@ -124,6 +187,11 @@ int main(void)
   tasks[2].elapsedTime = HUD_PERIOD;
   tasks[2].state = 0;
   tasks[2].TickFct = &HudTick;
+
+  tasks[3].period = HUD_PERIOD;
+  tasks[3].elapsedTime = HUD_PERIOD;
+  tasks[3].state = InputInit;
+  tasks[3].TickFct = &InputTick;
   while (1)
   {
     // Main loop (do nothing)

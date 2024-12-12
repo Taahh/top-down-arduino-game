@@ -24,7 +24,34 @@ public:
     LinkedList(LinkedNode<T> *head = nullptr) : head(head), tail(head), nodesSize(0) {}
     LinkedNode<T> *head;
     LinkedNode<T> *tail;
-    void push(T byte);
+
+    T at(size_t n) {
+        LinkedNode<T>* dummy = head;
+        size_t i = 0;
+        while (dummy != nullptr) {
+            if (i == n) {
+                return dummy->dataByte;
+            }
+            i++;
+            dummy = dummy->next;
+        }
+    }
+
+    void push(T byte)
+    {
+        this->nodesSize++;
+        if (head == nullptr)
+        {
+            this->head = new LinkedNode<T>();
+            this->head->dataByte = byte;
+            this->tail = head;
+            return;
+        }
+
+        this->tail->next = new LinkedNode<T>();
+        this->tail->next->dataByte = byte;
+        this->tail = this->tail->next;
+    }
     bool pop()
     {
         if (head == nullptr)
@@ -53,33 +80,13 @@ public:
         out = head->dataByte;
         return true;
     }
-    int size();
+    int size()
+    {
+        return this->nodesSize;
+    }
 
 private:
     int nodesSize;
 };
-
-template <typename T>
-void LinkedList<T>::push(T byte)
-{
-    this->nodesSize++;
-    if (head == nullptr)
-    {
-        this->head = new LinkedNode<T>();
-        this->head->dataByte = byte;
-        this->tail = head;
-        return;
-    }
-
-    this->tail->next = new LinkedNode<T>();
-    this->tail->next->dataByte = byte;
-    this->tail = this->tail->next;
-}
-
-template <typename T>
-int LinkedList<T>::size()
-{
-    return this->nodesSize;
-}
 
 #endif

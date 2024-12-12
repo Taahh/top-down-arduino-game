@@ -7,6 +7,7 @@
 #include <util/delay.h>
 #include <data/sprite.h>
 #include "linkedlist.h"
+#include "constants.h"
 
 #define SPI_DDR DDRB
 #define CS PINB2
@@ -479,7 +480,6 @@ void ILI9341_drawBitmapScaled(uint16_t x, uint16_t y, uint16_t scale, uint16_t w
 
     DC_HIGH();
     CS_LOW();
-    uint16_t defaultColor = 0x11b4;
 
     for (int16_t j = 0; j < height; j++)
     {
