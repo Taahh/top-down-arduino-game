@@ -512,6 +512,7 @@ void ILI9341_drawBitmapScaled(uint16_t x, uint16_t y, uint16_t scale, uint16_t w
 }
 void ILI9341_drawBitmapScaled(uint16_t x, uint16_t y, Sprite *sprite)
 {
+    // serial_println(sprite->name());
     ILI9341_drawBitmapScaled(x, y, sprite->scale(), sprite->width(), sprite->height(), sprite->bitmap());
 }
 

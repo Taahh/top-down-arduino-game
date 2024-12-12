@@ -3,6 +3,7 @@
 #include <avr/pgmspace.h>
 #include <string.h>
 #include <stdio.h>
+#include <game/manager/items/bow.h>
 
 extern "C" char *__brkval;
 extern "C" char __heap_start;
@@ -23,8 +24,18 @@ extern "C" char __heap_start;
 
 //     return &stack - heap;
 // }
+bool endScreen = false;
 void renderTick(Game *game)
 {
+    if (game->getScore() >= 5) {
+        if (!endScreen) {
+            endScreen = true;
+            ILI9341_fillScreen(0xf800);
+            ILI9341_drawString(0, 200, "You won!", 0xff, 3);
+            ILI9341_drawString(0, 250, "Thanks for playing", 0xff, 2);
+        }
+        return;
+    }
     LinkedNode<Tuple<uint8_t, GameObject *>> *dummy = game->getGameObjects()->head;
     while (dummy != nullptr)
     {
@@ -41,7 +52,20 @@ void renderTick(Game *game)
                     while (other != nullptr)
                     {
                         Tuple<int, int> prev = other->dataByte;
-                        ILI9341_fillRect(prev.left, prev.right, 33, 33, 0x11b4);
+                        ILI9341_fillRect(prev.left, prev.right, 33, 33, defaultColor);
+                        character->previousLocs()->pop();
+                        other = other->next;
+                    }
+                }
+            } else if (entity->type() == Projectile) {
+                Arrow *character = static_cast<Arrow *>(entity);
+                if (character->previousLocs()->size() > 0)
+                {
+                    LinkedNode<Tuple<int, int>> *other = character->previousLocs()->head;
+                    while (other != nullptr)
+                    {
+                        Tuple<int, int> prev = other->dataByte;
+                        ILI9341_fillRect(prev.left, prev.right, 33, 33, defaultColor);
                         character->previousLocs()->pop();
                         other = other->next;
                     }
@@ -54,8 +78,6 @@ void renderTick(Game *game)
             GameObjectImpl *impl = static_cast<GameObjectImpl *>(object);
             ILI9341_drawBitmapScaled(impl->x(), impl->y(), impl->sprite());
         }
-
-        ILI9341_fillRect(0, height - (height / 3), width, 3, 0x00);
         dummy = dummy->next;
     }
 }

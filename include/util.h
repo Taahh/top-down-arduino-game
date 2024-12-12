@@ -18,3 +18,13 @@ struct Pixel
     uint16_t color;
 };
 #endif
+
+#ifndef UTIL_FUNCS_H
+#define UTIL_FUNCS_H
+#include <math.h>
+int distance(short x1, short y1, short x2, short y2) {
+    return sqrt(pow((x2 - x1), 2) + pow((y2 - y1), 2));
+}
+
+
+#endif

@@ -47,22 +47,68 @@ void TimerISR()
     tasks[i].elapsedTime += GCD_PERIOD; // Increment the elapsed time by GCD_PERIOD
   }
 }
-
+enum GameStates
+{
+  Init,
+  Tick
+};
 int LcdTick(int state)
 {
-  renderTick(game);
+  switch (state)
+  {
+  case Init:
+    state = Tick;
+    break;
+  default:
+    state = Tick;
+    break;
+  }
+  switch (state)
+  {
+  case Tick:
+    renderTick(game);
+    break;
+  }
   return state;
 }
 
 int GameTick(int state)
 {
-  gameTick(game);
+  switch (state)
+  {
+  case Init:
+    state = Tick;
+    break;
+  default:
+    state = Tick;
+    break;
+  }
+  switch (state)
+  {
+  case Tick:
+    gameTick(game);
+    break;
+  }
   return state;
 }
 
 int HudTick(int state)
 {
-  hudTick(game);
+  switch (state)
+  {
+  case Init:
+    state = Tick;
+    break;
+  default:
+    state = Tick;
+    break;
+  }
+  switch (state)
+  {
+  case Tick:
+    hudTick(game);
+    break;
+  }
   return state;
 }
 
@@ -72,13 +118,17 @@ enum InputStates
   ItemSwitchPress,
   ItemSwitchRelease,
   AttackPress,
-  AttackRelease
+  AttackRelease,
+  ResetPress,
+  ResetRelease
 };
 
 int InputTick(int state)
 {
   bool itemSwitch = GetBit(PINC, 5);
   bool attack = GetBit(PINC, 4);
+  // bool reset = GetBit(PINC, 2);
+  // serial_println(reset);
   switch (state)
   {
   case InputInit:
@@ -109,15 +159,23 @@ int InputTick(int state)
     break;
   }
 
+  Item *item = game->inventory()->items()->at(game->inventory()->selected());
+
   switch (state)
   {
   case ItemSwitchRelease:
     game->inventory()->selectNext();
+    item = game->inventory()->items()->at(game->inventory()->selected());
+    break;
+  case AttackPress:
+    item->incrementTicksHeld();
+    item->holdUse(game);
     break;
   case AttackRelease:
-    Item* item = game->inventory()->items()->at(game->inventory()->selected());
-    if (item != nullptr) {
-      item->use();
+    if (item != nullptr)
+    {
+      item->pressUse(game);
+      item->resetTicksHeld();
     }
     break;
   }
@@ -132,6 +190,7 @@ int main(void)
   SPI_init();
   DDRC = 0x00;
   DDRD = 0xF0;
+
   Sprite *goblinSprite = new Sprite("goblin", goblinMap, 16, 16, 2);
   Sprite *goblinHitSprite = new Sprite("goblinHit", goblinHitMap, 16, 16, 2);
   Sprite *characterSprite = new Sprite("character", characterMap, 16, 16, 2);
@@ -142,11 +201,18 @@ int main(void)
   Sprite *inventorySprite = new Sprite("inventory", inventory, 32, 16, 3);
   Sprite *swordSprite = new Sprite("sword", sword, 16, 16, 2);
   Sprite *bowLoadedSprite = new Sprite("bowLoaded", bowLoaded, 16, 16, 2);
+  Sprite *bowReadySprite = new Sprite("bowReady", bowReady, 16, 16, 2);
+  Sprite *bowBackSprite = new Sprite("bowBack", bowBack, 16, 16, 2);
+  Sprite *arrowRightSprite = new Sprite("arrowRight", arrowRight, 16, 16, 2);
+  Sprite *arrowLeftSprite = new Sprite("arrowLeft", arrowLeft, 16, 16, 2);
+  Sprite *arrowDownSprite = new Sprite("arrowDown", arrowDown, 16, 16, 2);
+  Sprite *arrowUpSprite = new Sprite("arrowUp", arrowUp, 16, 16, 2);
 
   game->inventory()->items()->push(new Sword(swordSprite));
   game->inventory()->items()->push(new Bow(bowLoadedSprite));
 
   registerSprite(goblinSprite);
+  registerSprite(goblinHitSprite);
   registerSprite(characterSprite);
   registerSprite(characterFaceRightSprite);
   registerSprite(characterFaceLeftSprite);
@@ -155,6 +221,12 @@ int main(void)
   registerSprite(inventorySprite);
   registerSprite(swordSprite);
   registerSprite(bowLoadedSprite);
+  registerSprite(bowReadySprite);
+  registerSprite(bowBackSprite);
+  registerSprite(arrowRightSprite);
+  registerSprite(arrowLeftSprite);
+  registerSprite(arrowDownSprite);
+  registerSprite(arrowUpSprite);
 
   game->setup();
 
@@ -163,29 +235,22 @@ int main(void)
   ILI9341_setRotation(2);
   ILI9341_fillScreen(0x11b4);
 
-  // _delay_ms(1000);
-  // ILI9341_fillRect(20, 20, 280, 200, 0xf800);
-  // ILI9341_drawString(20, 20, "Hello there", 0xffff, 2);
-  // _delay_ms(1000);
-  // ILI9341_fillScreen(0x13a4);
-  // ILI9341_fillRect(20, 20, width - 40, height - 40, 0x0000);
-
   TimerSet(GCD_PERIOD);
   TimerOn();
 
   tasks[0].period = LCD_PERIOD;
   tasks[0].elapsedTime = LCD_PERIOD;
-  tasks[0].state = 0;
+  tasks[0].state = Init;
   tasks[0].TickFct = &LcdTick;
 
   tasks[1].period = GAME_PERIOD;
   tasks[1].elapsedTime = GAME_PERIOD;
-  tasks[1].state = 0;
+  tasks[1].state = Init;
   tasks[1].TickFct = &GameTick;
 
   tasks[2].period = HUD_PERIOD;
   tasks[2].elapsedTime = HUD_PERIOD;
-  tasks[2].state = 0;
+  tasks[2].state = Init;
   tasks[2].TickFct = &HudTick;
 
   tasks[3].period = HUD_PERIOD;
@@ -194,7 +259,6 @@ int main(void)
   tasks[3].TickFct = &InputTick;
   while (1)
   {
-    // Main loop (do nothing)
   }
   return 0;
 }

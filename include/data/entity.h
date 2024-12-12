@@ -11,6 +11,7 @@ enum EntityType : char
 {
     Enemy,
     Player,
+    Projectile,
     NPC
 };
 
@@ -19,6 +20,8 @@ class Entity : public GameObjectImpl
 public:
     virtual void tick() {}
     virtual EntityType type();
+
+    virtual void onHit() {}
 
     bool entity() override
     {

@@ -18,26 +18,66 @@ public:
     }
     void setup();
     void registerObject(GameObject *);
+    GameObjectImpl *spawnObject(int16_t x, int16_t y, Sprite *sprite);
     bool canMove(uint8_t id, int16_t x, int16_t y);
     Inventory *inventory() { return userInventory; }
     LinkedList<Tuple<uint8_t, GameObject *>> *getGameObjects() { return gameObjects; }
+    int nextObjectId()
+    {
+        return currentObjId++;
+    }
+    void incScore() { score++; }
+    uint8_t getScore() { return score; }
+
+    Character *getPlayer();
 
 private:
     LinkedList<Tuple<uint8_t, GameObject *>> *gameObjects;
     uint8_t currentObjId = 0;
     Inventory *userInventory;
+    uint8_t score = 0;
 };
 void Game::registerObject(GameObject *object)
 {
     gameObjects->push({object->identifier(), object});
 }
 
+GameObjectImpl *Game::spawnObject(int16_t x, int16_t y, Sprite *sprite)
+{
+    GameObjectImpl *obj = new GameObjectImpl(x, y, currentObjId++, sprite);
+    gameObjects->push({obj->identifier(), obj});
+}
+
 void Game::setup()
 {
     // serial_println("setup");
+    registerObject(new Goblin(50, 100, currentObjId++));
+    registerObject(new Goblin(50, 50, currentObjId++));
+    registerObject(new Goblin(50, 80, currentObjId++));
     registerObject(new Goblin(100, 100, currentObjId++));
+    registerObject(new Goblin(100, 150, currentObjId++));
     registerObject(new Character(150, 100, currentObjId++));
     registerObject(new GameObjectImpl(0, 0, currentObjId++, "house"));
+    // registerObject(new GameObjectImpl(0, 150, currentObjId++, "arrow"));
+}
+
+Character *Game::getPlayer()
+{
+    LinkedNode<Tuple<uint8_t, GameObject *>> *dummy = game->getGameObjects()->head;
+    while (dummy != nullptr)
+    {
+        GameObject *object = dummy->dataByte.right;
+        if (object->entity())
+        {
+            Entity *entity = (Entity *)object;
+            if (entity->type() == Player)
+            {
+                return (Character *)entity;
+            }
+        }
+        dummy = dummy->next;
+    }
+    return nullptr;
 }
 
 bool Game::canMove(uint8_t id, int16_t x, int16_t y)
@@ -51,6 +91,15 @@ bool Game::canMove(uint8_t id, int16_t x, int16_t y)
             continue;
         }
         GameObject *object = dummy->dataByte.right;
+        if (object->entity())
+        {
+            Entity *entity = (Entity *)object;
+            if (entity->type() == Projectile)
+            {
+                dummy = dummy->next;
+                continue;
+            }
+        }
         if (object->hasSprite())
         {
             GameObjectImpl *objectImpl = static_cast<GameObjectImpl *>(object);
@@ -68,6 +117,25 @@ bool Game::canMove(uint8_t id, int16_t x, int16_t y)
         dummy = dummy->next;
     }
     return true;
+}
+
+Character *getCharacter(Game *game)
+{
+    LinkedNode<Tuple<uint8_t, GameObject *>> *dummy = game->getGameObjects()->head;
+    while (dummy != nullptr)
+    {
+        GameObject *object = dummy->dataByte.right;
+        if (object->entity())
+        {
+            Entity *entity = (Entity *)object;
+            if (entity->type() == Player)
+            {
+                return (Character *)entity;
+            }
+        }
+        dummy = dummy->next;
+    }
+    return nullptr;
 }
 
 #endif

@@ -8,23 +8,23 @@
 #include <ili9341.h>
 #include <serialATmega.h>
 
-class Character : public Entity
+class Character : public Entity, public Movable
 {
 public:
-    Character(int x, int y, uint8_t id) : Entity(x, y, id, "character")
+    Character(int x, int y, uint8_t id) : Entity(x, y, id, "character"), Movable()
     {
-        // this->movementSpeed = 3f;
-        this->previousLocations = new LinkedList<Tuple<int, int>>();
+        
     }
     void tick();
+    void onHit() {}
 
     EntityType type();
     void move(int16_t &x, int16_t &y);
-    LinkedList<Tuple<int, int>> *previousLocs() { return this->previousLocations; }
+    uint8_t facingDirection() { return facing; }
 
 private:
-    LinkedList<Tuple<int, int>> *previousLocations;
     uint8_t direction();
+    uint8_t facing; // 0 - north, 1 - south, 2 - east, 3 - west
 };
 
 EntityType Character::type()
@@ -76,30 +76,34 @@ void Character::move(int16_t &x, int16_t &y)
         previousLocations->push(prev);
         y = y + (objectSprite->height() * objectSprite->scale()) + 3 < (height - (height / 3)) ? y + 3 : y;
         this->objectSprite = getSprite("character");
+        facing = 1;
     }
     if (GetBit(dir, 0))
     {
         previousLocations->push(prev);
         y = y - (objectSprite->height() / 4 * objectSprite->scale()) - 3 >= 0 ? y - 3 : y;
         this->objectSprite = getSprite("charBehind");
+        facing = 0;
     }
     if (GetBit(dir, 3))
     {
         previousLocations->push(prev);
         x = x - (objectSprite->width() / 4 * objectSprite->scale()) - 3 >= 0 ? x - 3 : x;
         this->objectSprite = getSprite("charLeft");
+        facing = 3;
     }
     if (GetBit(dir, 2))
     {
         previousLocations->push(prev);
         x = x + (objectSprite->width() * objectSprite->scale()) + 3 < width ? x + 3 : x;
         this->objectSprite = getSprite("charRight");
+        facing = 2;
     }
 }
 
 void Character::tick()
 {
-    // this->move();
+    
 }
 
 #endif

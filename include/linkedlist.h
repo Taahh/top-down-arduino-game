@@ -69,6 +69,37 @@ public:
         return true;
     }
 
+    bool pop(size_t n)
+    {
+        if (head == nullptr)
+        {
+            return false;
+        }
+        LinkedNode<T> *temp = head;
+        if (n == 0) {
+            pop();
+            return true;
+        }
+        size_t curr = 0;
+
+        // for popping past index 0
+        while (temp->next != nullptr) {
+            if (curr + 1 == n) {
+                LinkedNode<T>* old = temp->next;
+                temp->next = temp->next->next;
+                if (temp->next == nullptr) {
+                    tail = temp;
+                }
+                delete old;
+                return true;
+            }
+            //if you want to pop 1, and you're at index 0, 0 + 1 == 1, 0 next = 2
+            curr++;
+            temp = temp->next;
+        }
+        return false;
+    }
+
     // Peek method to look at the first element without removing it
     // Returns true if successful, false if the list is empty
     bool peek(T &out) const
